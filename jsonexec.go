@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"os/exec"
+	"strings"
 )
 
 // Run run `name arg...` command and treats its stdout as a JSON,
@@ -24,7 +25,7 @@ func Run(dest interface{}, name string, arg ...string) error {
 		return ErrorExecution{
 			errorWithOutput{
 				err:    fmt.Errorf("run command: %w", err),
-				output: stderr.String(),
+				output: strings.TrimSpace(stderr.String()),
 			},
 		}
 	}
@@ -41,13 +42,22 @@ func Run(dest interface{}, name string, arg ...string) error {
 	return nil
 }
 
+// Rung generic version of Run. Can be a bit more convenient.
+func Rung[T any](name string, args ...string) (res T, err error) {
+	if err := Run(&res, name, args...); err != nil {
+		return res, err
+	}
+
+	return res, nil
+}
+
 type errorWithOutput struct {
 	err    error
 	output string
 }
 
 func (e errorWithOutput) Error() string {
-	return e.err.Error()
+	return fmt.Sprintf("%s: %s", e.output, e.err)
 }
 
 // Details error details
