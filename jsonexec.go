@@ -24,7 +24,7 @@ func Run(dest interface{}, name string, arg ...string) error {
 
 	if err := cmd.Run(); err != nil {
 		out := strings.TrimSpace(stderr.String())
-		if out != "" {
+		if out == "" {
 			out = "run command"
 		}
 
