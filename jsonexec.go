@@ -3,10 +3,11 @@ package jsonexec
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"os/exec"
 	"strings"
+
+	"github.com/sirkon/errors"
 )
 
 // Run run `name arg...` command and treats its stdout as a JSON,
@@ -22,21 +23,16 @@ func Run(dest interface{}, name string, arg ...string) error {
 	cmd.Stderr = &stderr
 
 	if err := cmd.Run(); err != nil {
-		return ErrorExecution{
-			errorWithOutput{
-				err:    fmt.Errorf("run command: %w", err),
-				output: strings.TrimSpace(stderr.String()),
-			},
+		out := strings.TrimSpace(stderr.String())
+		if out != "" {
+			out = "run command"
 		}
+
+		return errors.New(out).Str("error-status", err.Error())
 	}
 
 	if err := json.Unmarshal(stdout.Bytes(), dest); err != nil {
-		return ErrorUnmarshal{
-			errorWithOutput{
-				err:    fmt.Errorf("unmarshal command output: %w", err),
-				output: stdout.String(),
-			},
-		}
+		return errors.Wrap(err, "unmarshal command output").Str("error-output", stdout.String())
 	}
 
 	return nil
