@@ -25,7 +25,10 @@ func Run(dest interface{}, name string, arg ...string) error {
 	if err := cmd.Run(); err != nil {
 		out := strings.TrimSpace(stderr.String())
 		if out == "" {
-			out = "run command"
+			out = strings.TrimSpace(stdout.String())
+			if out == "" {
+				out = "run command"
+			}
 		}
 
 		return errors.New(out).Str("error-status", err.Error())
